@@ -1,11 +1,64 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { timelineEvents } from '../data/timeline';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const recentUpdates = timelineEvents.slice(0, 3);
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout>
+	<section class="page-shell pb-24 pt-24 sm:pt-32 lg:pb-36 lg:pt-40">
+		<p class="mb-7 text-xs font-medium tracking-[0.18em] text-muted uppercase">Personal Digital Garden</p>
+		<h1 class="max-w-5xl text-[clamp(3.5rem,10vw,8.5rem)] leading-[0.9] font-semibold tracking-[-0.065em]">
+			Liang<br />Dongqchen
+		</h1>
+		<div class="mt-12 flex flex-col justify-between gap-8 border-t border-line pt-7 sm:flex-row sm:items-start">
+			<p class="max-w-xl text-xl leading-relaxed tracking-[-0.025em] text-muted sm:text-2xl">
+				记录生活、旅行与摄影，<br class="hidden sm:block" />也收藏那些值得反复思考的瞬间。
+			</p>
+			<p class="text-xs tracking-[0.12em] text-muted uppercase">Based in China · Since 2026</p>
+		</div>
+	</section>
+
+	<section class="page-shell" aria-label="首页视觉">
+		<div class="relative min-h-[60vh] overflow-hidden bg-[#d8d8d5] sm:min-h-[72vh]">
+			<div class="absolute inset-0 bg-[linear-gradient(125deg,#ededeb_0%,#c4c4c0_45%,#858583_100%)]"></div>
+			<div class="absolute -right-[8%] -bottom-[28%] h-[78%] w-[68%] rounded-[50%] bg-[#202020] blur-[1px]"></div>
+			<div class="absolute right-[24%] bottom-[18%] h-[38%] w-[22%] rounded-[50%] bg-white/25 blur-3xl"></div>
+			<div class="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-[0.65rem] tracking-[0.15em] text-white/75 uppercase sm:p-9">
+				<span>Light, Form & Silence</span>
+				<span>01 / 01</span>
+			</div>
+		</div>
+	</section>
+
+	<section class="page-shell py-24 sm:py-32 lg:py-40">
+		<div class="mb-12 flex items-end justify-between border-b border-line pb-5 sm:mb-16">
+			<div>
+				<p class="mb-3 text-xs tracking-[0.15em] text-muted uppercase">Recently</p>
+				<h2 class="text-3xl font-medium tracking-[-0.04em] sm:text-4xl">最近动态</h2>
+			</div>
+			<span class="hidden text-xs text-muted sm:block">2026 — Present</span>
+		</div>
+
+		<div>
+			{
+				recentUpdates.map((update, index) => (
+					<article class="grid gap-4 border-b border-line py-8 sm:grid-cols-[8rem_1fr] sm:gap-10 sm:py-10">
+						<div class="flex items-center gap-4 text-xs text-muted sm:block">
+							<p>{update.date}</p>
+							<p class="mt-0 sm:mt-2">{update.category}</p>
+						</div>
+						<div class="grid gap-3 lg:grid-cols-[1fr_1fr] lg:gap-16">
+							<h3 class="text-xl font-medium tracking-[-0.025em] sm:text-2xl">
+								<span class="mr-4 text-xs text-muted">0{index + 1}</span>
+								{update.title}
+							</h3>
+							<p class="max-w-lg text-sm leading-7 text-muted sm:text-base">{update.description}</p>
+						</div>
+					</article>
+				))
+			}
+		</div>
+	</section>
+
+</BaseLayout>

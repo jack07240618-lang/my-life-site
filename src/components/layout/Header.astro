@@ -1,0 +1,45 @@
+---
+const pathname = Astro.url.pathname;
+const base = import.meta.env.BASE_URL;
+
+const navigation = [
+	{ label: 'Home', href: base },
+	{ label: 'Timeline', href: `${base}timeline` },
+	{ label: 'Journal', href: `${base}journal` },
+	{ label: 'Gallery', href: `${base}gallery` },
+	{ label: 'About', href: `${base}about` },
+];
+---
+
+<header class="border-b border-line bg-white/95">
+	<div class="page-shell flex h-18 items-center justify-between gap-6">
+		<a class="text-[0.95rem] font-semibold tracking-[-0.02em]" href={base} aria-label="返回首页">
+			L.D.
+		</a>
+
+		<nav aria-label="主导航" class="min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+			<ul class="flex items-center gap-4 text-[0.72rem] text-muted min-[360px]:gap-5 min-[360px]:text-[0.78rem] sm:gap-8 sm:text-[0.82rem]">
+				{
+					navigation.map((item) => {
+						const isActive = item.href === base ? pathname === base : pathname.startsWith(item.href);
+
+						return (
+							<li>
+								<a
+									class:list={[
+										'block py-2 transition-colors duration-200 hover:text-ink',
+										{ 'text-ink': isActive },
+									]}
+									href={item.href}
+									aria-current={isActive ? 'page' : undefined}
+								>
+									{item.label}
+								</a>
+							</li>
+						);
+					})
+				}
+			</ul>
+		</nav>
+	</div>
+</header>

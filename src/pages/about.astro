@@ -1,0 +1,57 @@
+---
+import PageIntro from '../components/layout/PageIntro.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const interests = ['Photography', 'Travel', 'Writing', 'Technology'];
+const directions = ['Astro & TypeScript', 'AI-assisted creation', 'Digital products'];
+---
+
+<BaseLayout title="About — Liang Dongqchen" description="关于我、我的兴趣，以及正在探索的技术方向。">
+	<PageIntro
+		eyebrow="A Little About Me"
+		titleTop="Ab"
+		titleBottom="out"
+		description={'保持好奇，认真生活。\n也持续创造属于自己的东西。'}
+		meta="Based in China"
+	/>
+
+	<section class="page-shell pb-28 sm:pb-40 lg:pb-48">
+		<div class="grid border-t border-line lg:grid-cols-[0.42fr_1fr]">
+			<p class="py-7 text-xs tracking-[0.14em] text-muted uppercase lg:py-12">Introduction</p>
+			<div class="border-t border-line py-8 lg:border-t-0 lg:border-l lg:py-12 lg:pl-16">
+				<p class="max-w-3xl text-2xl leading-relaxed tracking-[-0.035em] sm:text-3xl sm:leading-relaxed">
+					我是 Liang。喜欢在技术与生活之间寻找平衡，也习惯用文字和照片记录沿途看到的事物。
+				</p>
+				<p class="mt-8 max-w-2xl text-base leading-8 text-muted">
+					这个网站是我的私人数字花园。这里没有固定主题，也不追求更新频率，只保存真实经历、持续变化的想法，以及那些值得再次回看的普通瞬间。
+				</p>
+			</div>
+		</div>
+
+		<div class="grid border-t border-line lg:grid-cols-[0.42fr_1fr]">
+			<p class="py-7 text-xs tracking-[0.14em] text-muted uppercase lg:py-12">Interests</p>
+			<ul class="grid border-t border-line sm:grid-cols-2 lg:border-t-0 lg:border-l lg:pl-16">
+				{
+					interests.map((interest, index) => (
+						<li class="flex items-center justify-between border-b border-line py-6 text-lg tracking-[-0.02em] sm:odd:mr-8 sm:even:ml-8">
+							<span>{interest}</span>
+							<span class="text-xs text-muted">0{index + 1}</span>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<div class="grid border-t border-line lg:grid-cols-[0.42fr_1fr]">
+			<p class="py-7 text-xs tracking-[0.14em] text-muted uppercase lg:py-12">Direction</p>
+			<div class="border-t border-line py-8 lg:border-t-0 lg:border-l lg:py-12 lg:pl-16">
+				<p class="mb-8 max-w-2xl text-base leading-8 text-muted">
+					目前关注轻量网站、AI 辅助创作与数字产品，希望让技术成为更自然、更有温度的表达工具。
+				</p>
+				<ul class="flex flex-wrap gap-3">
+					{directions.map((direction) => <li class="border border-line px-4 py-2 text-xs text-muted">{direction}</li>)}
+				</ul>
+			</div>
+		</div>
+	</section>
+</BaseLayout>

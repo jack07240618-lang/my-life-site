@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import JournalCard from '../../components/journal/JournalCard.astro';
+import PageIntro from '../../components/layout/PageIntro.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
+	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<BaseLayout title="Journal — Liang Dongqchen" description="日记、思考，以及一些尚未完成的答案。">
+	<PageIntro
+		eyebrow="Notes & Thoughts"
+		titleTop="Jour"
+		titleBottom="nal"
+		description={'写下正在发生的生活，\n也保存那些缓慢形成的想法。'}
+		meta="Written in moments"
+	/>
+
+	<section class="page-shell pb-28 sm:pb-36 lg:pb-44" aria-label="日记文章">
+		<div class="mb-7 flex items-center justify-between text-xs tracking-[0.14em] text-muted uppercase">
+			<p>All Entries</p>
+			<p>{entries.length} Stories</p>
+		</div>
+
+		<div class="border-b border-line">
+			{entries.map((entry, index) => <JournalCard entry={entry} index={index} />)}
+		</div>
+	</section>
+
+</BaseLayout>

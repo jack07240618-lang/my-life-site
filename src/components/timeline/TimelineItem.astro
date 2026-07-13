@@ -1,0 +1,25 @@
+---
+import type { TimelineEvent } from '../../data/timeline';
+
+interface Props {
+	event: TimelineEvent;
+	index: number;
+}
+
+const { event, index } = Astro.props;
+---
+
+<article class="group grid gap-5 border-t border-line py-9 sm:grid-cols-[10rem_1fr] sm:gap-10 sm:py-12 lg:grid-cols-[13rem_1fr]">
+	<div class="flex items-center justify-between gap-4 sm:block">
+		<time class="text-sm font-medium tracking-[-0.01em]" datetime={event.date.replace('.', '-')}>{event.date}</time>
+		<p class="mt-0 text-[0.65rem] tracking-[0.14em] text-muted uppercase sm:mt-3">{event.category}</p>
+	</div>
+
+	<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:gap-16">
+		<h2 class="text-2xl leading-tight font-medium tracking-[-0.035em] sm:text-3xl">
+			<span class="mr-4 align-middle text-[0.65rem] font-normal tracking-normal text-muted">{String(index + 1).padStart(2, '0')}</span>
+			{event.title}
+		</h2>
+		<p class="max-w-xl text-sm leading-7 text-muted sm:text-base sm:leading-8">{event.description}</p>
+	</div>
+</article>
