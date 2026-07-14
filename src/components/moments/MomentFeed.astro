@@ -1,0 +1,66 @@
+---
+interface Props {
+	limit?: number;
+	compact?: boolean;
+}
+
+const { limit, compact = false } = Astro.props;
+---
+
+<div class="moments-feed" data-moment-feed data-limit={limit} data-compact={compact ? 'true' : 'false'}>
+	<p class="moment-state text-sm text-muted">正在读取近况…</p>
+	<div class="moment-list space-y-6"></div>
+</div>
+
+<script>
+	import { formatMomentDate, isSupabaseConfigured, supabase, type Moment } from '../../lib/supabase';
+
+	function escapeHTML(value: string) {
+		const element = document.createElement('div');
+		element.textContent = value;
+		return element.innerHTML;
+	}
+
+	function renderMoment(moment: Moment, compact: boolean) {
+		const images = moment.images ?? [];
+		const visibleImages = compact ? images.slice(0, 1) : images;
+		return `
+			<article class="moment-entry reveal is-visible overflow-hidden rounded-[28px] border border-white/70 bg-white/50 shadow-[0_18px_50px_rgba(31,32,28,0.05)] backdrop-blur-md">
+				${visibleImages.length ? `<div class="grid ${visibleImages.length > 1 ? 'sm:grid-cols-2' : ''} gap-px bg-line">${visibleImages.map((url, index) => `<img class="${compact ? 'aspect-[16/9]' : 'aspect-[4/3]'} h-full w-full object-cover" src="${escapeHTML(url)}" alt="动态图片 ${index + 1}" width="1600" height="1200" loading="lazy" decoding="async" />`).join('')}</div>` : ''}
+				<div class="p-6 sm:p-8">
+					<div class="mb-6 flex flex-wrap items-center justify-between gap-3 text-[0.65rem] tracking-[0.12em] text-muted uppercase">
+						<time datetime="${moment.created_at}">${formatMomentDate(moment.created_at)}</time>
+						${moment.location ? `<span>${escapeHTML(moment.location)}</span>` : ''}
+					</div>
+					<p class="whitespace-pre-wrap text-base leading-8 text-ink sm:text-lg">${escapeHTML(moment.content)}</p>
+				</div>
+			</article>`;
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-moment-feed]').forEach(async (root) => {
+		const state = root.querySelector<HTMLElement>('.moment-state');
+		const list = root.querySelector<HTMLElement>('.moment-list');
+		if (!state || !list) return;
+
+		if (!isSupabaseConfigured || !supabase) {
+			state.textContent = '动态发布功能尚未配置，现有网站内容不受影响。';
+			return;
+		}
+
+		let query = supabase.from('moments').select('id, content, images, location, created_at, updated_at').order('created_at', { ascending: false });
+		const limit = Number(root.dataset.limit);
+		if (Number.isFinite(limit) && limit > 0) query = query.limit(limit);
+		const { data, error } = await query;
+
+		if (error) {
+			state.textContent = '暂时无法读取动态。';
+			return;
+		}
+		if (!data?.length) {
+			state.textContent = '这里还没有新动态。';
+			return;
+		}
+		state.remove();
+		list.innerHTML = data.map((moment) => renderMoment(moment as Moment, root.dataset.compact === 'true')).join('');
+	});
+</script>

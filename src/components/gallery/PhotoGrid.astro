@@ -1,0 +1,50 @@
+---
+import { Image } from 'astro:assets';
+import type { GalleryPhoto } from '../../data/gallery';
+
+interface Props {
+	photos: GalleryPhoto[];
+}
+
+const { photos } = Astro.props;
+
+const sizeClasses = {
+	landscape: 'aspect-[4/3]',
+	portrait: 'aspect-[3/4]',
+	square: 'aspect-square',
+};
+
+---
+
+<div class="space-y-20 sm:space-y-32 lg:space-y-48">
+	{
+		photos.map((photo, index) => (
+			<figure class:list={['group reveal grid gap-7 lg:grid-cols-[minmax(0,7fr)_minmax(16rem,3fr)] lg:items-end lg:gap-14', { 'lg:grid-cols-[minmax(16rem,3fr)_minmax(0,7fr)]': index % 2 === 1 }]}>
+				<div class:list={['relative overflow-hidden rounded-[28px] bg-paper', sizeClasses[photo.format], { 'lg:order-2': index % 2 === 1 }]}>
+					<Image
+						class="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.025]"
+						src={photo.image}
+						alt={photo.alt}
+						width={photo.image.width}
+						height={photo.image.height}
+						widths={[640, 960, 1440, 1920]}
+						sizes="(min-width: 1024px) 68vw, 100vw"
+						format="webp"
+						quality={88}
+						loading={index < 2 ? 'eager' : 'lazy'}
+					/>
+					<span class="absolute top-4 right-4 text-[0.62rem] tracking-[0.14em] text-white/80 uppercase">
+						{String(index + 1).padStart(2, '0')}
+					</span>
+				</div>
+				<figcaption class:list={['border-t border-line pt-6', { 'lg:order-1': index % 2 === 1 }]}>
+					<div>
+						<p class="text-[0.65rem] tracking-[0.16em] text-forest uppercase">{photo.category} / {photo.year}</p>
+						<h2 class="font-display mt-5 text-4xl leading-none sm:text-5xl">{photo.title}</h2>
+						<p class="mt-5 text-sm text-muted">{photo.location}</p>
+					</div>
+				</figcaption>
+			</figure>
+		))
+	}
+</div>

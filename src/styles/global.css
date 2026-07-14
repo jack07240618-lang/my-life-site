@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+	--font-sans: "Avenir Next", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", Arial, sans-serif;
+	--font-display: Iowan Old Style, Baskerville, "Times New Roman", "Songti SC", serif;
+	--color-ink: #171816;
+	--color-muted: #6f716b;
+	--color-line: #d9d8d1;
+	--color-paper: #f1f0ea;
+	--color-canvas: #f7f6f1;
+	--color-forest: #4f5a50;
+	--color-sand: #c9bcaa;
+}
+
+@layer base {
+	:root {
+		color: var(--color-ink);
+		background: var(--color-canvas);
+		font-family: var(--font-sans);
+		font-synthesis: none;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		margin: 0;
+		min-width: 320px;
+		background: var(--color-canvas);
+		overflow-x: hidden;
+	}
+
+	main {
+		display: block;
+	}
+
+	img {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		object-fit: cover;
+	}
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	::selection {
+		color: var(--color-canvas);
+		background: var(--color-forest);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		body {
+			animation: page-in 900ms cubic-bezier(0.2, 0.65, 0.25, 1) both;
+		}
+
+		.reveal {
+			opacity: 0;
+			transform: translateY(24px);
+			transition: opacity 900ms ease, transform 900ms cubic-bezier(0.2, 0.65, 0.25, 1);
+		}
+
+		.reveal.is-visible {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+}
+
+@utility page-shell {
+	width: min(100% - 2rem, 90rem);
+	margin-inline: auto;
+}
+
+@utility font-display {
+	font-family: var(--font-display);
+}
+
+@keyframes page-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}

@@ -1,0 +1,47 @@
+---
+const pathname = Astro.url.pathname;
+const base = import.meta.env.BASE_URL;
+
+const navigation = [
+	{ label: 'Home', href: base },
+	{ label: 'Timeline', href: `${base}timeline` },
+	{ label: 'Journal', href: `${base}journal` },
+	{ label: 'Gallery', href: `${base}gallery` },
+	{ label: 'Moments', href: `${base}moments` },
+	{ label: 'About', href: `${base}about` },
+];
+---
+
+<header class="fixed inset-x-0 top-0 z-50 border-b border-white/15 bg-[#171816]/65 text-white backdrop-blur-xl">
+	<div class="page-shell flex h-18 items-center justify-between gap-6 sm:h-20">
+		<a class="flex items-center gap-3 text-[0.74rem] font-medium tracking-[0.16em] uppercase" href={base} aria-label="返回首页">
+			<span class="grid size-8 place-items-center rounded-full border border-white/35">LD</span>
+			<span class="hidden sm:inline">Dongqchen</span>
+		</a>
+
+		<nav aria-label="主导航" class="min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+			<ul class="flex items-center gap-4 text-[0.66rem] tracking-[0.08em] text-white/65 uppercase min-[390px]:gap-5 sm:gap-8 sm:text-[0.72rem]">
+				{
+					navigation.map((item) => {
+						const isActive = item.href === base ? pathname === base : pathname.startsWith(item.href);
+
+						return (
+							<li>
+								<a
+									class:list={[
+									'relative block py-2 transition-colors duration-300 hover:text-white after:absolute after:inset-x-0 after:-bottom-0 after:h-px after:origin-left after:bg-white after:transition-transform after:duration-300',
+									{ 'text-white after:scale-x-100': isActive, 'after:scale-x-0': !isActive },
+									]}
+									href={item.href}
+									aria-current={isActive ? 'page' : undefined}
+								>
+									{item.label}
+								</a>
+							</li>
+						);
+					})
+				}
+			</ul>
+		</nav>
+	</div>
+</header>

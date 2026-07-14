@@ -1,0 +1,25 @@
+---
+import PhotoGrid from '../components/gallery/PhotoGrid.astro';
+import PageIntro from '../components/layout/PageIntro.astro';
+import { galleryPhotos } from '../data/gallery';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Gallery — Liang Dongqchen" description="旅行、日常与光影构成的个人摄影作品集。">
+	<PageIntro
+		eyebrow="Selected Photography"
+		titleTop="Gal"
+		titleBottom="lery"
+		description={'关于远方、日常与光，\n一些安静的视觉笔记。'}
+		meta="Travel · Daily · Architecture"
+	/>
+
+	<section class="page-shell pb-32 sm:pb-44 lg:pb-56" aria-label="摄影作品">
+		<div class="mb-12 flex items-center justify-between border-b border-line pb-5 text-xs tracking-[0.14em] text-muted uppercase sm:mb-16">
+			<p>Archive 001</p>
+			<p>{galleryPhotos.length} Photographs</p>
+		</div>
+		<PhotoGrid photos={galleryPhotos} />
+	</section>
+
+</BaseLayout>

@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Studio — Liang Dongqchen" description="私人内容工作台。">
+	<section class="page-shell min-h-screen pb-28 pt-36 sm:pt-44">
+		<div class="mb-12 flex flex-col justify-between gap-6 border-b border-line pb-7 sm:flex-row sm:items-end">
+			<div>
+				<p class="mb-4 text-[0.65rem] tracking-[0.2em] text-forest uppercase">Private Studio</p>
+				<h1 class="font-display text-5xl sm:text-7xl">Publish a moment</h1>
+			</div>
+			<button id="sign-out" class="hidden rounded-full border border-line px-5 py-2.5 text-xs text-muted transition hover:border-ink hover:text-ink" type="button">退出登录</button>
+		</div>
+
+		<div id="setup-state" class="hidden rounded-[28px] border border-line bg-white/50 p-8 text-sm leading-7 text-muted">
+			发布系统尚未配置。请先设置 Supabase 环境变量并执行项目中的初始化 SQL。
+		</div>
+
+		<form id="login-form" class="mx-auto hidden max-w-md rounded-[28px] border border-white/70 bg-white/55 p-7 shadow-[0_18px_50px_rgba(31,32,28,0.05)] backdrop-blur-md sm:p-9">
+			<h2 class="font-display text-3xl">管理员登录</h2>
+			<label class="mt-8 block text-xs tracking-[0.12em] text-muted uppercase" for="email">Email</label>
+			<input id="email" class="mt-3 w-full border-b border-line bg-transparent py-3 outline-none transition focus:border-ink" type="email" autocomplete="email" required />
+			<label class="mt-7 block text-xs tracking-[0.12em] text-muted uppercase" for="password">Password</label>
+			<input id="password" class="mt-3 w-full border-b border-line bg-transparent py-3 outline-none transition focus:border-ink" type="password" autocomplete="current-password" required />
+			<button class="mt-9 w-full rounded-full bg-ink px-6 py-3.5 text-sm text-white transition hover:-translate-y-0.5 hover:bg-forest" type="submit">登录</button>
+			<p class="form-message mt-5 text-sm text-muted" aria-live="polite"></p>
+		</form>
+
+		<div id="studio" class="hidden grid gap-12 lg:grid-cols-[minmax(20rem,0.8fr)_minmax(0,1.2fr)] lg:items-start">
+			<form id="moment-form" class="rounded-[28px] border border-white/70 bg-white/55 p-7 shadow-[0_18px_50px_rgba(31,32,28,0.05)] backdrop-blur-md sm:p-9 lg:sticky lg:top-28">
+				<input id="moment-id" type="hidden" />
+				<input id="existing-images" type="hidden" value="[]" />
+				<div class="flex items-center justify-between gap-4">
+					<h2 id="editor-title" class="font-display text-3xl">新动态</h2>
+					<button id="cancel-edit" class="hidden text-xs text-muted underline decoration-line underline-offset-4" type="button">取消编辑</button>
+				</div>
+				<label class="mt-8 block text-xs tracking-[0.12em] text-muted uppercase" for="content">Moment</label>
+				<textarea id="content" class="mt-3 min-h-40 w-full resize-y rounded-2xl border border-line bg-white/40 p-4 leading-7 outline-none transition focus:border-forest" maxlength="2000" placeholder="此刻想留下什么？" required></textarea>
+				<label class="mt-6 block text-xs tracking-[0.12em] text-muted uppercase" for="location">Location</label>
+				<input id="location" class="mt-3 w-full border-b border-line bg-transparent py-3 outline-none transition focus:border-ink" maxlength="80" placeholder="可选" />
+				<label class="mt-7 block text-xs tracking-[0.12em] text-muted uppercase" for="images">Photographs · Up to 9</label>
+				<input id="images" class="mt-3 block w-full text-sm text-muted file:mr-4 file:rounded-full file:border-0 file:bg-paper file:px-5 file:py-2.5 file:text-xs file:text-ink" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+				<div id="image-preview" class="mt-5 grid grid-cols-3 gap-2"></div>
+				<button id="publish-button" class="mt-8 w-full rounded-full bg-ink px-6 py-3.5 text-sm text-white transition hover:-translate-y-0.5 hover:bg-forest disabled:cursor-wait disabled:opacity-50" type="submit">发布</button>
+				<p class="form-message mt-5 text-sm text-muted" aria-live="polite"></p>
+			</form>
+
+			<section aria-label="已发布动态">
+				<div class="mb-6 flex items-center justify-between text-xs tracking-[0.12em] text-muted uppercase"><p>Published</p><p id="moment-count">0 Moments</p></div>
+				<div id="admin-list" class="space-y-4"></div>
+			</section>
+		</div>
+	</section>
+</BaseLayout>
+
+<script>
+	import { compressImage, formatMomentDate, isSupabaseConfigured, supabase, type Moment } from '../lib/supabase';
+
+	const setupState = document.querySelector<HTMLElement>('#setup-state');
+	const loginForm = document.querySelector<HTMLFormElement>('#login-form');
+	const studio = document.querySelector<HTMLElement>('#studio');
+	const signOut = document.querySelector<HTMLButtonElement>('#sign-out');
+	const momentForm = document.querySelector<HTMLFormElement>('#moment-form');
+	const adminList = document.querySelector<HTMLElement>('#admin-list');
+	const preview = document.querySelector<HTMLElement>('#image-preview');
+	let moments: Moment[] = [];
+
+	function message(form: HTMLFormElement | null, text: string, error = false) {
+		const target = form?.querySelector<HTMLElement>('.form-message');
+		if (!target) return;
+		target.textContent = text;
+		target.classList.toggle('text-red-700', error);
+	}
+
+	function escapeHTML(value: string) {
+		const node = document.createElement('div');
+		node.textContent = value;
+		return node.innerHTML;
+	}
+
+	function resetEditor() {
+		momentForm?.reset();
+		(document.querySelector<HTMLInputElement>('#moment-id')!).value = '';
+		(document.querySelector<HTMLInputElement>('#existing-images')!).value = '[]';
+		document.querySelector('#editor-title')!.textContent = '新动态';
+		document.querySelector('#publish-button')!.textContent = '发布';
+		document.querySelector('#cancel-edit')?.classList.add('hidden');
+		if (preview) preview.innerHTML = '';
+		message(momentForm, '');
+	}
+
+	function renderList() {
+		if (!adminList) return;
+		document.querySelector('#moment-count')!.textContent = `${moments.length} Moments`;
+		adminList.innerHTML = moments.map((moment) => `
+			<article class="rounded-[24px] border border-white/70 bg-white/45 p-6 shadow-[0_12px_36px_rgba(31,32,28,0.04)]">
+				${moment.images?.[0] ? `<img class="mb-5 aspect-[16/9] w-full rounded-2xl object-cover" src="${escapeHTML(moment.images[0])}" alt="" loading="lazy" />` : ''}
+				<time class="text-[0.65rem] tracking-[0.1em] text-muted uppercase">${formatMomentDate(moment.created_at)}</time>
+				<p class="mt-4 line-clamp-3 whitespace-pre-wrap leading-7">${escapeHTML(moment.content)}</p>
+				<div class="mt-6 flex gap-5 border-t border-line pt-4 text-xs"><button class="edit-moment text-forest" data-id="${moment.id}" type="button">编辑</button><button class="delete-moment text-red-800" data-id="${moment.id}" type="button">删除</button></div>
+			</article>`).join('') || '<p class="py-10 text-sm text-muted">还没有发布动态。</p>';
+	}
+
+	async function loadMoments() {
+		if (!supabase) return;
+		const { data, error } = await supabase.from('moments').select('id, content, images, location, created_at, updated_at').order('created_at', { ascending: false });
+		if (error) return message(momentForm, error.message, true);
+		moments = (data ?? []) as Moment[];
+		renderList();
+	}
+
+	async function showAuthenticatedUI() {
+		if (!supabase) return;
+		const { data: isAdmin, error } = await supabase.rpc('is_site_admin');
+		if (error || !isAdmin) {
+			await supabase.auth.signOut();
+			loginForm?.classList.remove('hidden');
+			message(loginForm, '这个账号没有发布权限。', true);
+			return;
+		}
+		loginForm?.classList.add('hidden');
+		studio?.classList.remove('hidden');
+		signOut?.classList.remove('hidden');
+		await loadMoments();
+	}
+
+	async function initialize() {
+		if (!isSupabaseConfigured || !supabase) {
+			setupState?.classList.remove('hidden');
+			return;
+		}
+		const { data } = await supabase.auth.getUser();
+		if (data.user) await showAuthenticatedUI();
+		else loginForm?.classList.remove('hidden');
+	}
+
+	function storagePaths(urls: string[]) {
+		return urls.flatMap((url) => {
+			const marker = '/storage/v1/object/public/moments/';
+			const index = url.indexOf(marker);
+			return index === -1 ? [] : [decodeURIComponent(url.slice(index + marker.length).split('?')[0])];
+		});
+	}
+
+	loginForm?.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		if (!supabase) return;
+		message(loginForm, '正在登录…');
+		const email = (document.querySelector<HTMLInputElement>('#email')!).value;
+		const password = (document.querySelector<HTMLInputElement>('#password')!).value;
+		const { error } = await supabase.auth.signInWithPassword({ email, password });
+		if (error) return message(loginForm, '邮箱或密码不正确。', true);
+		message(loginForm, '');
+		await showAuthenticatedUI();
+	});
+
+	signOut?.addEventListener('click', async () => {
+		await supabase?.auth.signOut();
+		location.reload();
+	});
+
+	document.querySelector('#images')?.addEventListener('change', (event) => {
+		const files = Array.from((event.target as HTMLInputElement).files ?? []).slice(0, 9);
+		if (preview) preview.innerHTML = files.map((file) => `<img class="aspect-square w-full rounded-xl object-cover" src="${URL.createObjectURL(file)}" alt="待上传图片" />`).join('');
+	});
+
+	momentForm?.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		if (!supabase) return;
+		const button = document.querySelector<HTMLButtonElement>('#publish-button')!;
+		button.disabled = true;
+		message(momentForm, '正在处理图片并发布…');
+
+		try {
+			const id = (document.querySelector<HTMLInputElement>('#moment-id')!).value;
+			const content = (document.querySelector<HTMLTextAreaElement>('#content')!).value.trim();
+			const location = (document.querySelector<HTMLInputElement>('#location')!).value.trim() || null;
+			const files = Array.from((document.querySelector<HTMLInputElement>('#images')!).files ?? []).slice(0, 9);
+			let imageUrls = JSON.parse((document.querySelector<HTMLInputElement>('#existing-images')!).value) as string[];
+
+			if (files.length) {
+				imageUrls = [];
+				for (const file of files) {
+					const optimized = await compressImage(file);
+					const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.webp`;
+					const { error: uploadError } = await supabase.storage.from('moments').upload(path, optimized, { contentType: 'image/webp', cacheControl: '31536000' });
+					if (uploadError) throw uploadError;
+					imageUrls.push(supabase.storage.from('moments').getPublicUrl(path).data.publicUrl);
+				}
+			}
+
+			const oldImages = JSON.parse((document.querySelector<HTMLInputElement>('#existing-images')!).value) as string[];
+			const payload = { content, location, images: imageUrls, updated_at: new Date().toISOString() };
+			const result = id
+				? await supabase.from('moments').update(payload).eq('id', id)
+				: await supabase.from('moments').insert(payload);
+			if (result.error) throw result.error;
+			if (id && files.length && oldImages.length) await supabase.storage.from('moments').remove(storagePaths(oldImages));
+			resetEditor();
+			message(momentForm, id ? '已更新。' : '已发布。');
+			await loadMoments();
+		} catch (error) {
+			message(momentForm, error instanceof Error ? error.message : '发布失败，请稍后重试。', true);
+		} finally {
+			button.disabled = false;
+		}
+	});
+
+	adminList?.addEventListener('click', async (event) => {
+		const target = event.target as HTMLButtonElement;
+		const id = target.dataset.id;
+		if (!id) return;
+		const moment = moments.find((item) => item.id === id);
+		if (target.classList.contains('edit-moment') && moment) {
+			(document.querySelector<HTMLInputElement>('#moment-id')!).value = moment.id;
+			(document.querySelector<HTMLTextAreaElement>('#content')!).value = moment.content;
+			(document.querySelector<HTMLInputElement>('#location')!).value = moment.location ?? '';
+			(document.querySelector<HTMLInputElement>('#existing-images')!).value = JSON.stringify(moment.images ?? []);
+			document.querySelector('#editor-title')!.textContent = '编辑动态';
+			document.querySelector('#publish-button')!.textContent = '保存修改';
+			document.querySelector('#cancel-edit')?.classList.remove('hidden');
+			if (preview) preview.innerHTML = (moment.images ?? []).map((url) => `<img class="aspect-square w-full rounded-xl object-cover" src="${escapeHTML(url)}" alt="已发布图片" />`).join('');
+			momentForm?.scrollIntoView({ behavior: 'smooth' });
+		}
+		if (target.classList.contains('delete-moment') && confirm('确定删除这条动态吗？')) {
+			const { error } = await supabase!.from('moments').delete().eq('id', id);
+			if (error) return message(momentForm, error.message, true);
+			if (moment?.images?.length) await supabase!.storage.from('moments').remove(storagePaths(moment.images));
+			await loadMoments();
+		}
+	});
+
+	document.querySelector('#cancel-edit')?.addEventListener('click', resetEditor);
+	initialize();
+</script>

@@ -1,0 +1,31 @@
+---
+import TimelineItem from '../components/timeline/TimelineItem.astro';
+import PageIntro from '../components/layout/PageIntro.astro';
+import { timelineEvents } from '../data/timeline';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+	title="Timeline — Liang Dongqchen"
+	description="沿着时间，记录生活中值得记住的事件与变化。"
+>
+	<PageIntro
+		eyebrow="Life Archive"
+		titleTop="Time"
+		titleBottom="line"
+		description={'人生不是连续的叙事，\n而是一些被记住的时刻。'}
+		meta="2025 — Present"
+	/>
+
+	<section class="page-shell pb-28 sm:pb-36 lg:pb-44" aria-label="人生时间线">
+		<div class="mb-7 flex items-center justify-between text-xs tracking-[0.14em] text-muted uppercase">
+			<p>Selected Moments</p>
+			<p>{timelineEvents.length} Entries</p>
+		</div>
+
+		<div>
+			{timelineEvents.map((event, index) => <TimelineItem event={event} index={index} />)}
+		</div>
+	</section>
+
+</BaseLayout>

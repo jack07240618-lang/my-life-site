@@ -1,0 +1,14 @@
+---
+import MomentFeed from '../components/moments/MomentFeed.astro';
+import PageIntro from '../components/layout/PageIntro.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Moments — Liang Dongqchen" description="照片、短句与正在发生的生活。">
+	<PageIntro eyebrow="Field Notes" titleTop="Mo" titleBottom="ments" description={'不必成为长篇，\n只记录此刻真正想留下的事。'} meta="Life · Light · Places" />
+	<section class="page-shell pb-28 sm:pb-40" aria-label="最新动态">
+		<div class="mx-auto max-w-4xl">
+			<MomentFeed />
+		</div>
+	</section>
+</BaseLayout>
