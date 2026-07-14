@@ -12,7 +12,7 @@ const site = owner ? `https://${owner}.github.io` : 'http://localhost:4321';
 export default defineConfig({
 	site,
 	base,
-	integrations: [sitemap()],
+	integrations: [sitemap({ filter: (page) => !page.endsWith('/studio/') })],
 	vite: {
 		plugins: [tailwindcss()],
 	},
